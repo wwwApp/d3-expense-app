@@ -35,10 +35,11 @@ const simulation = d3
 	.stop();
 
 function Expenses({ width, data }) {
-	let circles = null;
 	let container = null;
 	let calculatedData = null;
+	let circles = null;
 	let days = null;
+	let weeks = null;
 	const containerRef = useRef(null);
 	const [mySelectedWeek, setMySelectedWeek] = useState(null);
 
@@ -56,8 +57,9 @@ function Expenses({ width, data }) {
 			// componentdidmount
 			container = d3.select(containerRef.current);
 			calculateData();
+			renderDays();
+			renderWeeks();
 			renderCircles();
-			renderDayCircle();
 
 			simulation.nodes(calculatedData).alpha(0.9).restart();
 		} else {
@@ -75,6 +77,17 @@ function Expenses({ width, data }) {
 		let selectedWeek = weeksExtent[1];
 		let selectedWeekRadius = (width - margin.left - margin.right) / 2;
 		let perAngle = Math.PI / 6;
+
+		// rectangle for each week
+		weeks = d3.timeWeek
+			.range(weeksExtent[0], d3.timeWeek.offset(weeksExtent[1], 1))
+			.map((week) => {
+				return {
+					week,
+					x: margin.left,
+					y: yScale(week) + height,
+				};
+			});
 
 		// circles for the back of each day in semi-circle
 		days = daysOfWeek.map((date) => {
@@ -144,7 +157,7 @@ function Expenses({ width, data }) {
 			.attr('stroke', (d) => colorScale(amountScale(d.amount)));
 	};
 
-	const renderDayCircle = () => {
+	const renderDays = () => {
 		let renderDays = container
 			.selectAll('.day')
 			.data(days, (d) => d.name)
@@ -170,6 +183,33 @@ function Expenses({ width, data }) {
 			.attr('fill', '#ccc')
 			.style('font-weight', 600)
 			.text((d) => d.name);
+	};
+
+	const renderWeeks = () => {
+		let renderWeeks = container
+			.selectAll('.week')
+			.data(weeks, (d) => d.name)
+			.enter()
+			.append('g')
+			.classed('week', true)
+			.attr('transform', (d) => `translate(${[d.x, d.y]})`);
+
+		let rectHeight = 10;
+
+		renderWeeks
+			.append('rect')
+			.attr('y', -rectHeight / 2)
+			.attr('width', width - margin.left - margin.right)
+			.attr('height', rectHeight)
+			.attr('fill', '#ccc')
+			.attr('opacity', 0.25);
+
+		let weekFormat = d3.timeFormat('%m/%d');
+		renderWeeks
+			.append('text')
+			.attr('text-anchor', 'end')
+			.attr('dy', '.35em')
+			.text((d) => weekFormat(d.week));
 	};
 
 	return <svg width={width} height={height * 2} ref={containerRef}></svg>;
