@@ -35,9 +35,10 @@ const simulation = d3
 	.stop();
 
 function Expenses({ width, data }) {
-	var circles = null;
-	var container = null;
-	var calculatedData = null;
+	let circles = null;
+	let container = null;
+	let calculatedData = null;
+	let days = null;
 	const containerRef = useRef(null);
 	const [mySelectedWeek, setMySelectedWeek] = useState(null);
 
@@ -56,6 +57,7 @@ function Expenses({ width, data }) {
 			container = d3.select(containerRef.current);
 			calculateData();
 			renderCircles();
+			renderDayCircle();
 
 			simulation.nodes(calculatedData).alpha(0.9).restart();
 		} else {
@@ -72,6 +74,21 @@ function Expenses({ width, data }) {
 
 		let selectedWeek = weeksExtent[1];
 		let selectedWeekRadius = (width - margin.left - margin.right) / 2;
+		let perAngle = Math.PI / 6;
+
+		// circles for the back of each day in semi-circle
+		days = daysOfWeek.map((date) => {
+			let [dayOfWeek, name] = date;
+			let angle = Math.PI - perAngle * dayOfWeek;
+			let x = selectedWeekRadius * Math.cos(angle) + width / 2;
+			let y = selectedWeekRadius * Math.sin(angle) + margin.top;
+
+			return {
+				name,
+				x,
+				y,
+			};
+		});
 
 		calculatedData = _.chain(data)
 			.groupBy((d) => d3.timeWeek.floor(d.date))
@@ -83,7 +100,6 @@ function Expenses({ width, data }) {
 					let focusY = yScale(weekKey) + height;
 
 					if (weekKey.getTime() === selectedWeek.getTime()) {
-						let perAngle = Math.PI / 6;
 						let angle = Math.PI - perAngle * dayOfWeek;
 
 						focusX =
@@ -109,7 +125,7 @@ function Expenses({ width, data }) {
 	const renderCircles = () => {
 		// draw expenses circle
 		circles = container
-			.selectAll('circle')
+			.selectAll('.expense')
 			.data(calculatedData, (d) => d.name);
 
 		// exit
@@ -119,12 +135,41 @@ function Expenses({ width, data }) {
 		circles = circles
 			.enter()
 			.append('circle')
+			.classed('expense', true)
 			.attr('r', radius)
 			.attr('fill-opacity', 0.25)
 			.attr('stroke-width', 3)
 			.merge(circles)
 			.attr('fill', (d) => colorScale(amountScale(d.amount)))
 			.attr('stroke', (d) => colorScale(amountScale(d.amount)));
+	};
+
+	const renderDayCircle = () => {
+		let renderDays = container
+			.selectAll('.day')
+			.data(days, (d) => d.name)
+			.enter()
+			.append('g')
+			.classed('day', true)
+			.attr('transform', (d) => `translate(${[d.x, d.y]})`);
+
+		let daysRadius = 60;
+		let fontSize = 12;
+
+		renderDays
+			.append('circle')
+			.attr('r', daysRadius)
+			.attr('fill', '#ccc')
+			.attr('opacity', 0.25);
+
+		renderDays
+			.append('text')
+			.attr('y', daysRadius + fontSize)
+			.attr('text-anchor', 'middle')
+			.attr('dy', '.35em')
+			.attr('fill', '#ccc')
+			.style('font-weight', 600)
+			.text((d) => d.name);
 	};
 
 	return <svg width={width} height={height * 2} ref={containerRef}></svg>;
