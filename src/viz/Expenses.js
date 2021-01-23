@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import chroma from 'chroma-js';
 import _ from 'lodash';
@@ -18,7 +18,7 @@ const daysOfWeek = [
 	[6, 'S'],
 ];
 const xScale = d3.scaleBand().domain(_.map(daysOfWeek, 0));
-const yScale = d3.scaleLinear().range([margin.top, height - margin.bottom]);
+const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 const colorScale = chroma.scale(['#53cf8d', '#f7d283', '#e85151']);
 const amountScale = d3.scaleLinear();
 const simulation = d3
@@ -34,14 +34,13 @@ const simulation = d3
 	)
 	.stop();
 
-function Expenses({ width, data }) {
+function Expenses({ width, data, selectedWeek }) {
 	let container = null;
 	let calculatedData = null;
 	let circles = null;
 	let days = null;
 	let weeks = null;
 	const containerRef = useRef(null);
-	const [mySelectedWeek, setMySelectedWeek] = useState(null);
 
 	const forceTick = () => {
 		circles.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
@@ -50,7 +49,7 @@ function Expenses({ width, data }) {
 	useEffect(() => {
 		xScale.range([margin.left, width - margin.right]);
 		simulation.on('tick', forceTick);
-	}, [forceTick, width]);
+	}, [forceTick]);
 
 	useEffect(() => {
 		if (container === null) {
@@ -74,7 +73,6 @@ function Expenses({ width, data }) {
 		let weeksExtent = d3.extent(data, (d) => d3.timeWeek.floor(d.date));
 		yScale.domain(weeksExtent);
 
-		let selectedWeek = weeksExtent[1];
 		let selectedWeekRadius = (width - margin.left - margin.right) / 2;
 		let perAngle = Math.PI / 6;
 
@@ -136,6 +134,7 @@ function Expenses({ width, data }) {
 	};
 
 	const renderCircles = () => {
+		console.log('rendering circles');
 		// draw expenses circle
 		circles = container
 			.selectAll('.expense')
@@ -158,6 +157,7 @@ function Expenses({ width, data }) {
 	};
 
 	const renderDays = () => {
+		console.log('rendering days');
 		let renderDays = container
 			.selectAll('.day')
 			.data(days, (d) => d.name)
@@ -186,6 +186,7 @@ function Expenses({ width, data }) {
 	};
 
 	const renderWeeks = () => {
+		console.log('rendering weeks');
 		let renderWeeks = container
 			.selectAll('.week')
 			.data(weeks, (d) => d.name)
