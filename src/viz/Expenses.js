@@ -9,13 +9,13 @@ const radius = 10;
 
 // d3 functions
 const daysOfWeek = [
-	[0, 'S'],
-	[1, 'M'],
-	[2, 'T'],
-	[3, 'W'],
-	[4, 'Th'],
-	[5, 'F'],
-	[6, 'S'],
+	[0, 'Sat'],
+	[1, 'Mon'],
+	[2, 'Tue'],
+	[3, 'Wed'],
+	[4, 'Thu'],
+	[5, 'Fri'],
+	[6, 'Sun'],
 ];
 const xScale = d3.scaleBand().domain(_.map(daysOfWeek, 0));
 const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
@@ -23,6 +23,8 @@ const colorScale = chroma.scale(['#53cf8d', '#f7d283', '#e85151']);
 const amountScale = d3.scaleLinear();
 const simulation = d3
 	.forceSimulation()
+	.alphaDecay(0.001)
+	.velocityDecay(0.3)
 	.force('collide', d3.forceCollide(radius))
 	.force(
 		'x',
@@ -52,21 +54,17 @@ function Expenses({ width, data, selectedWeek }) {
 	}, [forceTick]);
 
 	useEffect(() => {
-		if (container === null) {
-			// componentdidmount
-			container = d3.select(containerRef.current);
-			calculateData();
-			renderDays();
-			renderWeeks();
-			renderCircles();
+		container = d3.select(containerRef.current);
+		calculateData();
+		renderCircles();
 
-			simulation.nodes(calculatedData).alpha(0.9).restart();
-		} else {
-			// componentdidupdate
-			calculateData();
-			renderCircles();
-		}
+		simulation.nodes(calculatedData).alpha(0.9).restart();
 	});
+
+	useEffect(() => {
+		renderDays();
+		renderWeeks();
+	}, [data]);
 
 	// calculate expenses circle position using its date
 	const calculateData = () => {
@@ -134,7 +132,7 @@ function Expenses({ width, data, selectedWeek }) {
 	};
 
 	const renderCircles = () => {
-		console.log('rendering circles');
+		// console.log('rendering circles');
 		// draw expenses circle
 		circles = container
 			.selectAll('.expense')
@@ -157,7 +155,7 @@ function Expenses({ width, data, selectedWeek }) {
 	};
 
 	const renderDays = () => {
-		console.log('rendering days');
+		// console.log('rendering days');
 		let renderDays = container
 			.selectAll('.day')
 			.data(days, (d) => d.name)
@@ -186,7 +184,7 @@ function Expenses({ width, data, selectedWeek }) {
 	};
 
 	const renderWeeks = () => {
-		console.log('rendering weeks');
+		// console.log('rendering weeks');
 		let renderWeeks = container
 			.selectAll('.week')
 			.data(weeks, (d) => d.name)

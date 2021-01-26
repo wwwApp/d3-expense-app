@@ -32,11 +32,13 @@ function App() {
 	}, []);
 
 	const prevWeek = () => {
+		// todo: out of range error handling
 		let newWeek = d3.timeWeek.offset(selectedWeek, -1);
 		setSelectedWeek(newWeek);
 	};
 
 	const nextWeek = () => {
+		// todo: out of range error handling
 		let newWeek = d3.timeWeek.offset(selectedWeek, -1);
 		setSelectedWeek(newWeek);
 	};
