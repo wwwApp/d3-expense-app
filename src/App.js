@@ -1,15 +1,28 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import Expenses from './viz/Expenses';
-import expensesData from './data/expenses.json';
 import * as d3 from 'd3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import expensesData from './data/expenses.json';
+import Expenses from './viz/Expenses';
+import Categories from './viz/Categories';
 
 const width = 900;
+const height = 1800;
 
 function App() {
 	const [expenses, setExpenses] = useState([]);
+	const [categories, setCategories] = useState([
+		{
+			name: 'Groceries',
+			expenses: [],
+		},
+		{
+			name: 'Restaurants',
+			expenses: [],
+		},
+		,
+	]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
 	useEffect(() => {
@@ -45,11 +58,13 @@ function App() {
 
 	const props = {
 		width,
-		data: expenses,
+		expenses,
+		categories,
 		selectedWeek,
 	};
 
 	const timeFormat = d3.timeFormat('%B %d, %Y');
+	const isDataReady = expenses.length > 0 ? true : false;
 
 	return (
 		<div className="App">
@@ -62,7 +77,10 @@ function App() {
 					<FontAwesomeIcon icon={faArrowRight} />
 				</span>
 			</h2>
-			<Expenses {...props} />
+			<svg width={width} height={height}>
+				{isDataReady && <Expenses {...props} />}
+				{isDataReady && <Categories {...props} />}
+			</svg>
 		</div>
 	);
 }

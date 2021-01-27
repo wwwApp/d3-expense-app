@@ -36,39 +36,48 @@ const simulation = d3
 	)
 	.stop();
 
-function Expenses({ width, data, selectedWeek }) {
-	let container = null;
+function Expenses({ width, expenses, selectedWeek }) {
 	let calculatedData = null;
 	let circles = null;
 	let days = null;
 	let weeks = null;
+	const container = useRef(null);
 	const containerRef = useRef(null);
 
-	const forceTick = () => {
-		circles.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
-	};
-
+	// run only once for set up
 	useEffect(() => {
+		// console.log('run once');
 		xScale.range([margin.left, width - margin.right]);
 		simulation.on('tick', forceTick);
-	}, [forceTick]);
 
+		container.current = d3.select(containerRef.current);
+		calculateData();
+		renderCircles();
+		renderDays();
+		renderWeeks();
+
+		simulation.nodes(calculatedData).alpha(0.9).restart();
+	}, []);
+
+	// run on every updates
 	useEffect(() => {
-		container = d3.select(containerRef.current);
+		// console.log('run everytime');
+		simulation.on('tick', forceTick);
+
 		calculateData();
 		renderCircles();
 
 		simulation.nodes(calculatedData).alpha(0.9).restart();
 	});
 
-	useEffect(() => {
-		renderDays();
-		renderWeeks();
-	}, [data]);
+	const forceTick = () => {
+		// console.log('tick');
+		circles.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+	};
 
 	// calculate expenses circle position using its date
 	const calculateData = () => {
-		let weeksExtent = d3.extent(data, (d) => d3.timeWeek.floor(d.date));
+		let weeksExtent = d3.extent(expenses, (d) => d3.timeWeek.floor(d.date));
 		yScale.domain(weeksExtent);
 
 		let selectedWeekRadius = (width - margin.left - margin.right) / 2;
@@ -99,7 +108,7 @@ function Expenses({ width, data, selectedWeek }) {
 			};
 		});
 
-		calculatedData = _.chain(data)
+		calculatedData = _.chain(expenses)
 			.groupBy((d) => d3.timeWeek.floor(d.date))
 			.map((week, key) => {
 				let weekKey = new Date(key);
@@ -134,7 +143,7 @@ function Expenses({ width, data, selectedWeek }) {
 	const renderCircles = () => {
 		// console.log('rendering circles');
 		// draw expenses circle
-		circles = container
+		circles = container.current
 			.selectAll('.expense')
 			.data(calculatedData, (d) => d.name);
 
@@ -156,7 +165,7 @@ function Expenses({ width, data, selectedWeek }) {
 
 	const renderDays = () => {
 		// console.log('rendering days');
-		let renderDays = container
+		let renderDays = container.current
 			.selectAll('.day')
 			.data(days, (d) => d.name)
 			.enter()
@@ -185,7 +194,7 @@ function Expenses({ width, data, selectedWeek }) {
 
 	const renderWeeks = () => {
 		// console.log('rendering weeks');
-		let renderWeeks = container
+		let renderWeeks = container.current
 			.selectAll('.week')
 			.data(weeks, (d) => d.name)
 			.enter()
@@ -211,7 +220,7 @@ function Expenses({ width, data, selectedWeek }) {
 			.text((d) => weekFormat(d.week));
 	};
 
-	return <svg width={width} height={height * 2} ref={containerRef}></svg>;
+	return <g ref={containerRef}></g>;
 }
 
 export default Expenses;
