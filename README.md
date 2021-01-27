@@ -1,3 +1,7 @@
+# d3-expense-app
+
+Learning d3.js by reproducing [Shirley Wu's Expense App](https://www.youtube.com/playlist?list=PL1J8Fh6-iQxLij9QZYqL1xcb-K0EYrr22) with React hooks!
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
