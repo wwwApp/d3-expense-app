@@ -16,12 +16,13 @@ function App() {
 		{
 			name: 'Groceries',
 			expenses: [],
+			total: 0,
 		},
 		{
 			name: 'Restaurants',
 			expenses: [],
+			total: 0,
 		},
-		,
 	]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
