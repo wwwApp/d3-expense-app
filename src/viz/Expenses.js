@@ -35,6 +35,7 @@ const simulation = d3
 		d3.forceY((d) => d.focusY)
 	)
 	.stop();
+const drag = d3.drag();
 
 function Expenses({ width, expenses, selectedWeek }) {
 	let calculatedData = null;
@@ -52,11 +53,15 @@ function Expenses({ width, expenses, selectedWeek }) {
 
 		container.current = d3.select(containerRef.current);
 		calculateData();
-		renderCircles();
 		renderDays();
 		renderWeeks();
+		renderCircles();
 
 		simulation.nodes(calculatedData).alpha(0.9).restart();
+		drag.container(container.current)
+			.on('start', dragStarted)
+			.on('drag', dragExpense)
+			.on('end', dragEnd);
 	}, []);
 
 	// run on every updates
@@ -158,6 +163,7 @@ function Expenses({ width, expenses, selectedWeek }) {
 			.attr('r', radius)
 			.attr('fill-opacity', 0.25)
 			.attr('stroke-width', 3)
+			.call(drag)
 			.merge(circles)
 			.attr('fill', (d) => colorScale(amountScale(d.amount)))
 			.attr('stroke', (d) => colorScale(amountScale(d.amount)));
@@ -218,6 +224,29 @@ function Expenses({ width, expenses, selectedWeek }) {
 			.attr('text-anchor', 'end')
 			.attr('dy', '.35em')
 			.text((d) => weekFormat(d.week));
+	};
+
+	const dragStarted = (e) => {
+		// not quite sure why these are necessary
+		// drag stills works without these lines
+		// https://observablehq.com/@d3/force-directed-lattice?collection=@d3/d3-drag
+		simulation.alphaTarget(0.3).restart();
+		e.subject.fx = e.subject.x;
+		e.subject.fy = e.subject.y;
+	};
+
+	const dragExpense = (e) => {
+		e.subject.fx = e.x;
+		e.subject.fy = e.y;
+	};
+
+	const dragEnd = (e) => {
+		if (!e.active) {
+			simulation.alphaTarget(0);
+		}
+
+		e.subject.fx = null;
+		e.subject.fy = null;
 	};
 
 	return <g ref={containerRef}></g>;
