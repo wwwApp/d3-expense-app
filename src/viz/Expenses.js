@@ -17,7 +17,7 @@ const daysOfWeek = [
 	[5, 'Fri'],
 	[6, 'Sun'],
 ];
-const xScale = d3.scaleBand().domain(_.map(daysOfWeek, 0));
+const xScale = d3.scaleBand().domain(daysOfWeek.map((day) => day[0]));
 const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
 const colorScale = chroma.scale(['#53cf8d', '#f7d283', '#e85151']);
 const amountScale = d3.scaleLinear();

@@ -30,8 +30,9 @@ function App() {
 
 	useEffect(() => {
 		// componentwillmount
-		let processedExpenses = expensesData.map((d) => {
+		let processedExpenses = expensesData.map((d, i) => {
 			return {
+				id: i,
 				amount: d.amount,
 				name: d.name,
 				date: new Date(d.date),
@@ -60,8 +61,17 @@ function App() {
 	};
 
 	const linkToCategory = ({ expense, category }) => {
-		category.expenses.push(expense);
-		category.total += expense.amount;
+		const index = category.expenses
+			.map((expense) => expense.id)
+			.indexOf(expense.id);
+		if (index !== -1) {
+			// if expense is already linked, then unlink
+			category.expenses.splice(index, 1);
+			category.total -= expense.amount;
+		} else {
+			category.expenses.push(expense);
+			category.total += expense.amount;
+		}
 
 		forceUpdate();
 	};
