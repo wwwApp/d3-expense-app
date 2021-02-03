@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import * as d3 from 'd3';
+import _ from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import expensesData from './data/expenses.json';
 import Expenses from './viz/Expenses';
 import Categories from './viz/Categories';
+import { useForceUpdate } from './utils';
 
 const width = 900;
 const height = 1800;
 
 function App() {
+	const forceUpdate = useForceUpdate();
 	const [expenses, setExpenses] = useState([]);
 	const [categories, setCategories] = useState([
 		{
@@ -57,11 +60,18 @@ function App() {
 		setSelectedWeek(newWeek);
 	};
 
+	const linkToCategory = ({ expense, category }) => {
+		category.expenses.push(expense);
+		category.total += expense.amount;
+		forceUpdate();
+	};
+
 	const props = {
 		width,
 		expenses,
 		categories,
 		selectedWeek,
+		linkToCategory,
 	};
 
 	const timeFormat = d3.timeFormat('%B %d, %Y');
@@ -79,8 +89,8 @@ function App() {
 				</span>
 			</h2>
 			<svg width={width} height={height}>
-				{isDataReady && <Expenses {...props} />}
 				{isDataReady && <Categories {...props} />}
+				{isDataReady && <Expenses {...props} />}
 			</svg>
 		</div>
 	);

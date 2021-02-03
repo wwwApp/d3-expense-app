@@ -37,7 +37,13 @@ const simulation = d3
 	.stop();
 const drag = d3.drag();
 
-function Expenses({ width, expenses, selectedWeek }) {
+function Expenses({
+	width,
+	expenses,
+	selectedWeek,
+	categories,
+	linkToCategory,
+}) {
 	let calculatedData = null;
 	let circles = null;
 	let days = null;
@@ -235,18 +241,40 @@ function Expenses({ width, expenses, selectedWeek }) {
 		e.subject.fy = e.subject.y;
 	};
 
+	let dragged = null;
 	const dragExpense = (e) => {
 		e.subject.fx = e.x;
 		e.subject.fy = e.y;
+
+		let expense = e.subject;
+		let expenseX = e.x;
+		let expenseY = e.y;
+
+		categories.forEach((category) => {
+			// radius is actually diameter hence dividing it by 2
+			let { x, y, radius } = category;
+			if (
+				x - radius / 2 < expenseX &&
+				expenseX < x + radius / 2 &&
+				y - radius / 2 < expenseY &&
+				expenseY < y + radius / 2
+			) {
+				dragged = { expense, category };
+			}
+		});
 	};
 
 	const dragEnd = (e) => {
 		if (!e.active) {
 			simulation.alphaTarget(0);
 		}
-
 		e.subject.fx = null;
 		e.subject.fy = null;
+
+		if (dragged) {
+			linkToCategory(dragged);
+		}
+		dragged = null;
 	};
 
 	return <g ref={containerRef}></g>;

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import _ from 'lodash';
 
 const radiusScale = d3.scaleLinear().range([15, 50]);
 
@@ -40,7 +39,12 @@ function Categories({ width, categories }) {
 		simulation.nodes(calculatedData).alpha(0.9).restart();
 	}, []);
 
-	useEffect(() => {});
+	useEffect(() => {
+		calculateData();
+		renderCircle();
+
+		simulation.nodes(calculatedData).alpha(0.9).restart();
+	});
 
 	const forceTick = () => {
 		// console.log('tick');
@@ -50,6 +54,7 @@ function Categories({ width, categories }) {
 	const calculateData = () => {
 		// calculate domain for radius (total amount of expenses)
 		let radiusExtent = d3.extent(categories, (category) => category.total);
+		radiusScale.domain(radiusExtent);
 
 		calculatedData = categories.map((category) => {
 			return Object.assign(category, {
