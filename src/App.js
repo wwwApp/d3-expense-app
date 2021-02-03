@@ -26,7 +26,6 @@ function App() {
 			total: 0,
 		},
 	]);
-	const [links, setLinks] = useState([]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
 	useEffect(() => {
@@ -64,17 +63,30 @@ function App() {
 		category.expenses.push(expense);
 		category.total += expense.amount;
 
-		// create link b/t expense and category
-		let updatedLinks = links;
-		updatedLinks.push({
-			source: expense,
-			target: category,
-		});
-
-		// todo: need to figure out why setLinks won't trigger re-render
-		setLinks(updatedLinks);
 		forceUpdate();
 	};
+
+	const timeFormat = d3.timeFormat('%B %d, %Y');
+	const isDataReady = expenses.length > 0 ? true : false;
+	const links = (() => {
+		// render links only when category's expense is in the selectedWeek
+		let links = [];
+		categories.forEach((category) => {
+			category.expenses.forEach((expense) => {
+				if (
+					d3.timeWeek.floor(expense.date).getTime() ===
+					selectedWeek.getTime()
+				) {
+					links.push({
+						source: expense,
+						target: category,
+					});
+				}
+			});
+		});
+
+		return links;
+	})();
 
 	const props = {
 		width,
@@ -84,9 +96,6 @@ function App() {
 		links,
 		linkToCategory,
 	};
-
-	const timeFormat = d3.timeFormat('%B %d, %Y');
-	const isDataReady = expenses.length > 0 ? true : false;
 
 	return (
 		<div className="App">
