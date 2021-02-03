@@ -23,9 +23,10 @@ const simulation = d3
 	)
 	.stop();
 
-function Categories({ width, categories }) {
+function Categories({ width, categories, links }) {
 	let calculatedData = null;
 	let circles = null;
+	let lines = null;
 	const container = useRef(null);
 	const containerRef = useRef(null);
 
@@ -34,21 +35,29 @@ function Categories({ width, categories }) {
 
 		container.current = d3.select(containerRef.current);
 		calculateData();
+		renderLinks();
 		renderCircle();
 
 		simulation.nodes(calculatedData).alpha(0.9).restart();
 	}, []);
 
 	useEffect(() => {
+		simulation.on('tick', forceTick);
+
 		calculateData();
+		renderLinks();
 		renderCircle();
 
 		simulation.nodes(calculatedData).alpha(0.9).restart();
 	});
 
 	const forceTick = () => {
-		// console.log('tick');
 		circles.attr('transform', (d) => `translate(${[d.x, d.y]})`);
+		lines
+			.attr('x1', (d) => d.source.x)
+			.attr('y1', (d) => d.source.y)
+			.attr('x2', (d) => d.target.x)
+			.attr('y2', (d) => d.target.y);
 	};
 
 	const calculateData = () => {
@@ -63,6 +72,20 @@ function Categories({ width, categories }) {
 				focusY: height / 4,
 			});
 		});
+	};
+
+	const renderLinks = () => {
+		lines = container.current.selectAll('line').data(links);
+
+		// exit
+		lines.exit().remove();
+
+		// enter + update
+		lines = lines
+			.enter()
+			.insert('line', 'g')
+			.attr('stroke', '#666')
+			.merge(lines);
 	};
 
 	const renderCircle = () => {

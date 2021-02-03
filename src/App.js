@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import * as d3 from 'd3';
-import _ from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import expensesData from './data/expenses.json';
@@ -27,6 +26,7 @@ function App() {
 			total: 0,
 		},
 	]);
+	const [links, setLinks] = useState([]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
 	useEffect(() => {
@@ -63,6 +63,16 @@ function App() {
 	const linkToCategory = ({ expense, category }) => {
 		category.expenses.push(expense);
 		category.total += expense.amount;
+
+		// create link b/t expense and category
+		let updatedLinks = links;
+		updatedLinks.push({
+			source: expense,
+			target: category,
+		});
+
+		// todo: need to figure out why setLinks won't trigger re-render
+		setLinks(updatedLinks);
 		forceUpdate();
 	};
 
@@ -71,6 +81,7 @@ function App() {
 		expenses,
 		categories,
 		selectedWeek,
+		links,
 		linkToCategory,
 	};
 
