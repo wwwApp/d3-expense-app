@@ -72,7 +72,11 @@ function App() {
 			category.expenses.push(expense);
 			category.total += expense.amount;
 		}
+		forceUpdate();
+	};
 
+	const changeDate = ({ expense, day }) => {
+		expense.date = day.date;
 		forceUpdate();
 	};
 
@@ -105,19 +109,24 @@ function App() {
 		selectedWeek,
 		links,
 		linkToCategory,
+		changeDate,
 	};
 
 	return (
-		<div className="App">
-			<h2>
-				<span onClick={prevWeek}>
-					<FontAwesomeIcon icon={faArrowLeft} />
-				</span>
-				Week of {timeFormat(selectedWeek)}
-				<span onClick={nextWeek}>
-					<FontAwesomeIcon icon={faArrowRight} />
-				</span>
-			</h2>
+		<div className="App" style={{ width: width, margin: 'auto' }}>
+			<header className="flex">
+				<FontAwesomeIcon
+					icon={faArrowLeft}
+					onClick={prevWeek}
+					className="btn"
+				/>
+				<h1>Week of {timeFormat(selectedWeek)}</h1>
+				<FontAwesomeIcon
+					icon={faArrowRight}
+					onClick={nextWeek}
+					className="btn"
+				/>
+			</header>
 			<svg width={width} height={height}>
 				{isDataReady && <Categories {...props} />}
 				{isDataReady && <Expenses {...props} />}

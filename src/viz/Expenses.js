@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 const height = 600;
 const margin = { left: 40, top: 25, right: 40, bottom: 25 };
-const radius = 10;
+const expenseRadius = 10;
 
 // d3 functions
 const daysOfWeek = [
@@ -25,7 +25,7 @@ const simulation = d3
 	.forceSimulation()
 	.alphaDecay(0.001)
 	.velocityDecay(0.3)
-	.force('collide', d3.forceCollide(radius))
+	.force('collide', d3.forceCollide(expenseRadius))
 	.force(
 		'x',
 		d3.forceX((d) => d.focusX)
@@ -43,6 +43,7 @@ function Expenses({
 	selectedWeek,
 	categories,
 	linkToCategory,
+	changeDate,
 }) {
 	let calculatedData = null;
 	let circles = null;
@@ -112,8 +113,13 @@ function Expenses({
 			let x = selectedWeekRadius * Math.cos(angle) + width / 2;
 			let y = selectedWeekRadius * Math.sin(angle) + margin.top;
 
+			// selectedWeek is always on Sunday
+			// hence, to find the date out of the selected week,
+			// you're adding day of the week to it
 			return {
 				name,
+				date: d3.timeDay.offset(selectedWeek, dayOfWeek),
+				radius: 80,
 				x,
 				y,
 			};
@@ -166,7 +172,7 @@ function Expenses({
 			.enter()
 			.append('circle')
 			.classed('expense', true)
-			.attr('r', radius)
+			.attr('r', expenseRadius)
 			.attr('fill-opacity', 0.25)
 			.attr('stroke-width', 3)
 			.call(drag)
@@ -177,6 +183,8 @@ function Expenses({
 
 	const renderDays = () => {
 		// console.log('rendering days');
+		const fontSize = 12;
+
 		let renderDays = container.current
 			.selectAll('.day')
 			.data(days, (d) => d.name)
@@ -185,18 +193,15 @@ function Expenses({
 			.classed('day', true)
 			.attr('transform', (d) => `translate(${[d.x, d.y]})`);
 
-		let daysRadius = 60;
-		let fontSize = 12;
-
 		renderDays
 			.append('circle')
-			.attr('r', daysRadius)
+			.attr('r', (d) => d.radius)
 			.attr('fill', '#ccc')
 			.attr('opacity', 0.25);
 
 		renderDays
 			.append('text')
-			.attr('y', daysRadius + fontSize)
+			.attr('y', (d) => d.radius + fontSize)
 			.attr('text-anchor', 'middle')
 			.attr('dy', '.35em')
 			.attr('fill', '#ccc')
@@ -250,16 +255,29 @@ function Expenses({
 		let expenseX = e.x;
 		let expenseY = e.y;
 
+		// check for overlapped categories
 		categories.forEach((category) => {
-			// radius is actually diameter hence dividing it by 2
 			let { x, y, radius } = category;
 			if (
-				x - radius / 2 < expenseX &&
-				expenseX < x + radius / 2 &&
-				y - radius / 2 < expenseY &&
-				expenseY < y + radius / 2
+				x - radius < expenseX &&
+				expenseX < x + radius &&
+				y - radius < expenseY &&
+				expenseY < y + radius
 			) {
-				dragged = { expense, category };
+				dragged = { expense, category, type: 'category' };
+			}
+		});
+
+		// check for overlapped days
+		days.forEach((day) => {
+			let { x, y, radius } = day;
+			if (
+				x - radius < expenseX &&
+				expenseX < x + radius &&
+				y - radius < expenseY &&
+				expenseY < y + radius
+			) {
+				dragged = { expense, day, type: 'day' };
 			}
 		});
 	};
@@ -271,8 +289,10 @@ function Expenses({
 		e.subject.fx = null;
 		e.subject.fy = null;
 
-		if (dragged) {
+		if (dragged && dragged.type === 'category') {
 			linkToCategory(dragged);
+		} else if (dragged && dragged.type === 'day') {
+			changeDate(dragged);
 		}
 		dragged = null;
 	};
