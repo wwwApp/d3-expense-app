@@ -2,6 +2,12 @@
 
 Learning d3.js by reproducing [Shirley Wu's Expense App](https://www.youtube.com/playlist?list=PL1J8Fh6-iQxLij9QZYqL1xcb-K0EYrr22) with React hooks!
 
+## To Do:
+
+-   Take care of error handlings
+-   Make the current layout works with dynamic numbers of days/expenses
+-   Add a feature to add a new expense
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

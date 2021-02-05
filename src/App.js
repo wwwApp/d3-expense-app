@@ -6,57 +6,57 @@ import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import expensesData from './data/expenses.json';
 import Expenses from './viz/Expenses';
 import Categories from './viz/Categories';
+import Day from './viz/Day';
 import { useForceUpdate } from './utils';
 
-const width = 900;
+const width = 750;
 const height = 1800;
+const colors = {
+	white: '#fff8fa',
+	gray: '#e1ecea',
+	black: '#516561',
+};
 
 function App() {
 	const forceUpdate = useForceUpdate();
 	const [expenses, setExpenses] = useState([]);
 	const [categories, setCategories] = useState([
-		{
-			name: 'Groceries',
-			expenses: [],
-			total: 0,
-		},
-		{
-			name: 'Restaurants',
-			expenses: [],
-			total: 0,
-		},
+		{ name: 'Restaurants', expenses: [], total: 0 },
+		{ name: 'Travel', expenses: [], total: 0 },
+		{ name: 'Dessert', expenses: [], total: 0 },
 	]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
 	useEffect(() => {
 		// componentwillmount
-		let processedExpenses = expensesData.map((d, i) => {
+		const processedExpenses = expensesData.map((d, i) => {
 			return {
 				id: i,
 				amount: d.amount,
 				name: d.name,
 				date: new Date(d.date),
+				categories: 0,
 			};
 		});
 
 		// default selected week will be the most recent week
-		let selectedWeek = d3.max(processedExpenses, (exp) =>
+		const defaultSelectedWeek = d3.max(processedExpenses, (exp) =>
 			d3.timeWeek.floor(exp.date)
 		);
 
 		setExpenses(processedExpenses);
-		setSelectedWeek(selectedWeek);
+		setSelectedWeek(defaultSelectedWeek);
 	}, []);
 
 	const prevWeek = () => {
 		// todo: out of range error handling
-		let newWeek = d3.timeWeek.offset(selectedWeek, -1);
+		const newWeek = d3.timeWeek.offset(selectedWeek, -1);
 		setSelectedWeek(newWeek);
 	};
 
 	const nextWeek = () => {
 		// todo: out of range error handling
-		let newWeek = d3.timeWeek.offset(selectedWeek, -1);
+		const newWeek = d3.timeWeek.offset(selectedWeek, 1);
 		setSelectedWeek(newWeek);
 	};
 
@@ -67,10 +67,10 @@ function App() {
 		if (index !== -1) {
 			// if expense is already linked, then unlink
 			category.expenses.splice(index, 1);
-			category.total -= expense.amount;
+			expense.categories -= 1;
 		} else {
 			category.expenses.push(expense);
-			category.total += expense.amount;
+			expense.categories += 1;
 		}
 		forceUpdate();
 	};
@@ -82,38 +82,29 @@ function App() {
 
 	const timeFormat = d3.timeFormat('%B %d, %Y');
 	const isDataReady = expenses.length > 0 ? true : false;
-	const links = (() => {
-		// render links only when category's expense is in the selectedWeek
-		let links = [];
-		categories.forEach((category) => {
-			category.expenses.forEach((expense) => {
-				if (
-					d3.timeWeek.floor(expense.date).getTime() ===
-					selectedWeek.getTime()
-				) {
-					links.push({
-						source: expense,
-						target: category,
-					});
-				}
-			});
-		});
 
-		return links;
-	})();
+	const appStyle = { width: width, margin: 'auto', position: 'relative' };
+	const svgStyle = {
+		overflow: 'visible',
+		position: 'absolute',
+		top: 0,
+		width,
+		height,
+		zIndex: -1,
+	};
 
 	const props = {
 		width,
+		colors,
 		expenses,
 		categories,
 		selectedWeek,
-		links,
 		linkToCategory,
 		changeDate,
 	};
 
 	return (
-		<div className="App" style={{ width: width, margin: 'auto' }}>
+		<div className="App" style={appStyle}>
 			<header className="flex">
 				<FontAwesomeIcon
 					icon={faArrowLeft}
@@ -127,7 +118,8 @@ function App() {
 					className="btn"
 				/>
 			</header>
-			<svg width={width} height={height}>
+			<svg width={width} height={height} style={svgStyle}>
+				{isDataReady && <Day {...props} />}
 				{isDataReady && <Categories {...props} />}
 				{isDataReady && <Expenses {...props} />}
 			</svg>

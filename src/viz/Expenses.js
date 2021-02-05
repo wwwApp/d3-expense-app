@@ -1,31 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import chroma from 'chroma-js';
 import _ from 'lodash';
 
-const height = 600;
-const margin = { left: 40, top: 25, right: 40, bottom: 25 };
-const expenseRadius = 10;
+const dayWidth = 55;
+const dayHeight = 75;
+const topPadding = 600;
+const margin = { left: 40, top: 20, right: 40, bottom: 20 };
+const radius = 8;
+const fontSize = 14;
 
 // d3 functions
-const daysOfWeek = [
-	[0, 'Sat'],
-	[1, 'Mon'],
-	[2, 'Tue'],
-	[3, 'Wed'],
-	[4, 'Thu'],
-	[5, 'Fri'],
-	[6, 'Sun'],
-];
-const xScale = d3.scaleBand().domain(daysOfWeek.map((day) => day[0]));
-const yScale = d3.scaleLinear().range([height - margin.bottom, margin.top]);
-const colorScale = chroma.scale(['#53cf8d', '#f7d283', '#e85151']);
-const amountScale = d3.scaleLinear();
+var xScale = d3.scaleLinear().domain([0, 6]);
+var yScale = d3.scaleLinear();
+var amountScale = d3.scaleLinear().range([radius, 3 * radius]);
 const simulation = d3
 	.forceSimulation()
 	.alphaDecay(0.001)
 	.velocityDecay(0.3)
-	.force('collide', d3.forceCollide(expenseRadius))
+	.force(
+		'collide',
+		d3.forceCollide((d) => d.radius + 2)
+	)
 	.force(
 		'x',
 		d3.forceX((d) => d.focusX)
@@ -39,47 +34,53 @@ const drag = d3.drag();
 
 function Expenses({
 	width,
+	colors,
 	expenses,
 	selectedWeek,
 	categories,
 	linkToCategory,
 	changeDate,
 }) {
-	let calculatedData = null;
+	const [loaded, setLoaded] = useState(false);
+	let calculatedExpenses = null;
 	let circles = null;
 	let days = null;
-	let weeks = null;
 	const container = useRef(null);
 	const containerRef = useRef(null);
 
-	// run only once for set up
+	const [minDate, maxDate] = d3.extent(expenses, (d) =>
+		d3.timeDay.floor(d.date)
+	);
+	// dynamically calculate height depending on how many
+	// possible weeks are within the range
+	// not sure why, but we need to subtract 100 for nice looking layout
+	const height =
+		dayHeight * 2 * d3.timeWeek.range(minDate, maxDate).length - 100;
+
 	useEffect(() => {
-		// console.log('run once');
-		xScale.range([margin.left, width - margin.right]);
 		simulation.on('tick', forceTick);
 
-		container.current = d3.select(containerRef.current);
-		calculateData();
-		renderDays();
-		renderWeeks();
-		renderCircles();
+		if (!loaded) {
+			xScale.range([margin.left, width - margin.right]);
 
-		simulation.nodes(calculatedData).alpha(0.9).restart();
-		drag.container(container.current)
-			.on('start', dragStarted)
-			.on('drag', dragExpense)
-			.on('end', dragEnd);
-	}, []);
+			container.current = d3.select(containerRef.current);
 
-	// run on every updates
-	useEffect(() => {
-		// console.log('run everytime');
-		simulation.on('tick', forceTick);
+			calculateData();
+			renderCircles();
 
-		calculateData();
-		renderCircles();
+			simulation.nodes(calculatedExpenses).alpha(0.9).restart();
 
-		simulation.nodes(calculatedData).alpha(0.9).restart();
+			drag.container(container.current)
+				.on('start', dragStarted)
+				.on('drag', dragExpense)
+				.on('end', dragEnd);
+			setLoaded(true);
+		} else {
+			calculateData();
+			renderCircles();
+
+			simulation.nodes(calculatedExpenses).alpha(0.9).restart();
+		}
 	});
 
 	const forceTick = () => {
@@ -89,72 +90,73 @@ function Expenses({
 
 	// calculate expenses circle position using its date
 	const calculateData = () => {
-		let weeksExtent = d3.extent(expenses, (d) => d3.timeWeek.floor(d.date));
-		yScale.domain(weeksExtent);
+		// set scale for the range of dates
+		const weeksExtent = d3.extent(expenses, (d) =>
+			d3.timeWeek.floor(d.date)
+		);
+		yScale.range([height - margin.bottom, margin.top]).domain(weeksExtent);
 
-		let selectedWeekRadius = (width - margin.left - margin.right) / 2;
-		let perAngle = Math.PI / 6;
+		//set scale for the range of expense amounts
+		const amountExtent = d3.extent(expenses, (d) => d.amount);
+		amountScale.domain(amountExtent);
 
-		// rectangle for each week
-		weeks = d3.timeWeek
-			.range(weeksExtent[0], d3.timeWeek.offset(weeksExtent[1], 1))
-			.map((week) => {
-				return {
-					week,
-					x: margin.left,
-					y: yScale(week) + height,
-				};
-			});
-
-		// circles for the back of each day in semi-circle
-		days = daysOfWeek.map((date) => {
-			let [dayOfWeek, name] = date;
-			let angle = Math.PI - perAngle * dayOfWeek;
-			let x = selectedWeekRadius * Math.cos(angle) + width / 2;
-			let y = selectedWeekRadius * Math.sin(angle) + margin.top;
-
-			// selectedWeek is always on Sunday
-			// hence, to find the date out of the selected week,
-			// you're adding day of the week to it
-			return {
-				name,
-				date: d3.timeDay.offset(selectedWeek, dayOfWeek),
-				radius: 80,
-				x,
-				y,
-			};
-		});
-
-		calculatedData = _.chain(expenses)
+		calculatedExpenses = _.chain(expenses)
 			.groupBy((d) => d3.timeWeek.floor(d.date))
-			.map((week, key) => {
-				let weekKey = new Date(key);
-				return week.map((exp) => {
-					let dayOfWeek = exp.date.getDay();
-					let focusX = xScale(dayOfWeek);
-					let focusY = yScale(weekKey) + height;
+			.map((expenses, week) => {
+				week = new Date(week);
+				return expenses.map((expense) => {
+					let { x, y } = calculateDayPosition(expense.date, true);
 
-					if (weekKey.getTime() === selectedWeek.getTime()) {
-						let angle = Math.PI - perAngle * dayOfWeek;
-
-						focusX =
-							selectedWeekRadius * Math.cos(angle) + width / 2;
-						focusY =
-							selectedWeekRadius * Math.sin(angle) + margin.top;
-					}
-
-					return Object.assign(exp, {
-						focusX: focusX,
-						focusY: focusY,
+					return Object.assign(expense, {
+						radius: amountScale(expense.amount),
+						focusX: x,
+						focusY: y,
+						x: expense.x || x,
+						y: expense.y || y,
 					});
 				});
 			})
 			.flatten()
 			.value();
 
-		// set the scale depending on the amount of expense
-		let amountExtent = d3.extent(calculatedData, (d) => d.amount);
-		amountScale.domain(amountExtent);
+		// get all the days in the selected week
+		const calculatedSelectedWeek = d3.timeDay.range(
+			selectedWeek,
+			d3.timeWeek.offset(selectedWeek, 1)
+		);
+
+		// we're using _.union here to combine days within selected week
+		// with all days with its position and date properties without duplicate
+		days = _.chain(calculatedSelectedWeek)
+			.map((date) =>
+				Object.assign(calculateDayPosition(date, true), date)
+			)
+			.union(
+				d3.timeDay
+					.range(minDate, maxDate)
+					.map((date) =>
+						Object.assign(calculateDayPosition(date), date)
+					)
+			)
+			.value();
+	};
+
+	const calculateDayPosition = (date, shouldSelectedWeekCurve) => {
+		const dayOfWeek = date.getDay(); // [0 ~ 6]
+		const week = d3.timeWeek.floor(date); // the week that the date is within
+		let x = xScale(dayOfWeek); // day of the week position (horizontal)
+		let y = yScale(week) + topPadding + 4 * dayHeight; // vertical
+
+		if (
+			shouldSelectedWeekCurve &&
+			week.getTime() === selectedWeek.getTime()
+		) {
+			// if this day is within selected week and need to be placed in curve
+			const offset = Math.abs(3 - dayOfWeek);
+			y = topPadding + dayHeight - 0.5 * offset * dayHeight;
+		}
+
+		return { x, y };
 	};
 
 	const renderCircles = () => {
@@ -162,7 +164,7 @@ function Expenses({
 		// draw expenses circle
 		circles = container.current
 			.selectAll('.expense')
-			.data(calculatedData, (d) => d.name);
+			.data(calculatedExpenses, (d) => d.name);
 
 		// exit
 		circles.exit().remove();
@@ -172,72 +174,22 @@ function Expenses({
 			.enter()
 			.append('circle')
 			.classed('expense', true)
-			.attr('r', expenseRadius)
-			.attr('fill-opacity', 0.25)
-			.attr('stroke-width', 3)
+			.attr('fill', colors.white)
+			.style('cursor', 'move')
 			.call(drag)
 			.merge(circles)
-			.attr('fill', (d) => colorScale(amountScale(d.amount)))
-			.attr('stroke', (d) => colorScale(amountScale(d.amount)));
-	};
-
-	const renderDays = () => {
-		// console.log('rendering days');
-		const fontSize = 12;
-
-		let renderDays = container.current
-			.selectAll('.day')
-			.data(days, (d) => d.name)
-			.enter()
-			.append('g')
-			.classed('day', true)
-			.attr('transform', (d) => `translate(${[d.x, d.y]})`);
-
-		renderDays
-			.append('circle')
 			.attr('r', (d) => d.radius)
-			.attr('fill', '#ccc')
-			.attr('opacity', 0.25);
-
-		renderDays
-			.append('text')
-			.attr('y', (d) => d.radius + fontSize)
-			.attr('text-anchor', 'middle')
-			.attr('dy', '.35em')
-			.attr('fill', '#ccc')
-			.style('font-weight', 600)
-			.text((d) => d.name);
+			.attr('stroke', (d) => (d.categories ? colors.black : ''));
 	};
 
-	const renderWeeks = () => {
-		// console.log('rendering weeks');
-		let renderWeeks = container.current
-			.selectAll('.week')
-			.data(weeks, (d) => d.name)
-			.enter()
-			.append('g')
-			.classed('week', true)
-			.attr('transform', (d) => `translate(${[d.x, d.y]})`);
-
-		let rectHeight = 10;
-
-		renderWeeks
-			.append('rect')
-			.attr('y', -rectHeight / 2)
-			.attr('width', width - margin.left - margin.right)
-			.attr('height', rectHeight)
-			.attr('fill', '#ccc')
-			.attr('opacity', 0.25);
-
-		let weekFormat = d3.timeFormat('%m/%d');
-		renderWeeks
-			.append('text')
-			.attr('text-anchor', 'end')
-			.attr('dy', '.35em')
-			.text((d) => weekFormat(d.week));
-	};
+	/**
+	 * Drag event functions
+	 */
+	let dragging = false;
+	let dragged = null;
 
 	const dragStarted = (e) => {
+		dragging = true;
 		// not quite sure why these are necessary
 		// drag stills works without these lines
 		// https://observablehq.com/@d3/force-directed-lattice?collection=@d3/d3-drag
@@ -246,8 +198,9 @@ function Expenses({
 		e.subject.fy = e.subject.y;
 	};
 
-	let dragged = null;
 	const dragExpense = (e) => {
+		dragged = null;
+
 		e.subject.fx = e.x;
 		e.subject.fy = e.y;
 
@@ -257,7 +210,7 @@ function Expenses({
 
 		// check for overlapped categories
 		categories.forEach((category) => {
-			let { x, y, radius } = category;
+			const { x, y, radius } = category;
 			if (
 				x - radius < expenseX &&
 				expenseX < x + radius &&
@@ -270,12 +223,12 @@ function Expenses({
 
 		// check for overlapped days
 		days.forEach((day) => {
-			let { x, y, radius } = day;
+			const { x, y } = day;
 			if (
-				x - radius < expenseX &&
-				expenseX < x + radius &&
-				y - radius < expenseY &&
-				expenseY < y + radius
+				x - dayWidth < expenseX &&
+				expenseX < x + dayWidth &&
+				y - dayHeight < expenseY &&
+				expenseY < y + dayHeight
 			) {
 				dragged = { expense, day, type: 'day' };
 			}
@@ -289,12 +242,16 @@ function Expenses({
 		e.subject.fx = null;
 		e.subject.fy = null;
 
-		if (dragged && dragged.type === 'category') {
-			linkToCategory(dragged);
-		} else if (dragged && dragged.type === 'day') {
-			changeDate(dragged);
+		if (dragged) {
+			if (dragged.type === 'category') {
+				linkToCategory(dragged);
+			} else if (dragged.type === 'day') {
+				changeDate(dragged);
+			}
 		}
+
 		dragged = null;
+		dragging = false;
 	};
 
 	return <g ref={containerRef}></g>;

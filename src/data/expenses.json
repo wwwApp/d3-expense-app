@@ -28,5 +28,10 @@
 	{ "name": "Coffee", "date": "07/26/2020", "amount": 38 },
 	{ "name": "Grocery", "date": "07/25/2020", "amount": 45 },
 	{ "name": "Coffee", "date": "07/17/2020", "amount": 35 },
-	{ "name": "Grocery", "date": "07/30/2020", "amount": 27 }
+	{ "name": "Grocery", "date": "07/30/2020", "amount": 27 },
+	{ "name": "Grocery", "date": "06/28/2020", "amount": 45 },
+	{ "name": "Coffee", "date": "06/25/2020", "amount": 38 },
+	{ "name": "Grocery", "date": "06/28/2020", "amount": 45 },
+	{ "name": "Coffee", "date": "06/21/2020", "amount": 35 },
+	{ "name": "Grocery", "date": "06/30/2020", "amount": 27 }
 ]
