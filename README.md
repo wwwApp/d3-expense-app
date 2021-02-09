@@ -2,6 +2,8 @@
 
 Learning d3.js by reproducing [Shirley Wu's Expense App](https://www.youtube.com/playlist?list=PL1J8Fh6-iQxLij9QZYqL1xcb-K0EYrr22) with React hooks!
 
+Check it out on live: https://wwwapp.github.io/d3-expense-app/
+
 ## To Do:
 
 -   Take care of error handlings
