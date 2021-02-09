@@ -80,10 +80,35 @@ function App() {
 		forceUpdate();
 	};
 
+	const addCategory = (e) => {
+		const ENTER_CODE = 13;
+
+		if (e.keyCode === ENTER_CODE) {
+			const newCategory = {
+				name: e.target.value,
+				expenses: [],
+				total: 0,
+			};
+
+			setCategories([...categories, newCategory]);
+		}
+	};
+
 	const timeFormat = d3.timeFormat('%B %d, %Y');
 	const isDataReady = expenses.length > 0 ? true : false;
 
 	const appStyle = { width: width, margin: 'auto', position: 'relative' };
+	const inputStyle = {
+		fontSize: 14,
+		textAlign: 'center',
+		display: 'block',
+		padding: 5,
+		width: 200,
+		background: 'none',
+		color: colors.black,
+		border: 'none',
+		borderBottom: '2px solid ' + colors.black,
+	};
 	const svgStyle = {
 		overflow: 'visible',
 		position: 'absolute',
@@ -105,18 +130,28 @@ function App() {
 
 	return (
 		<div className="App" style={appStyle}>
-			<header className="flex">
-				<FontAwesomeIcon
-					icon={faArrowLeft}
-					onClick={prevWeek}
-					className="btn"
-				/>
-				<h1>Week of {timeFormat(selectedWeek)}</h1>
-				<FontAwesomeIcon
-					icon={faArrowRight}
-					onClick={nextWeek}
-					className="btn"
-				/>
+			<header>
+				<div className="flex">
+					<FontAwesomeIcon
+						icon={faArrowLeft}
+						onClick={prevWeek}
+						className="btn"
+					/>
+					<h1>Week of {timeFormat(selectedWeek)}</h1>
+					<FontAwesomeIcon
+						icon={faArrowRight}
+						onClick={nextWeek}
+						className="btn"
+					/>
+				</div>
+				<div className="flex">
+					<input
+						style={inputStyle}
+						type="text"
+						placeholder="Add category"
+						onKeyDown={addCategory}
+					></input>
+				</div>
 			</header>
 			<svg width={width} height={height} style={svgStyle}>
 				{isDataReady && <Day {...props} />}

@@ -47,6 +47,7 @@ function Expenses({
 	let days = null;
 	const container = useRef(null);
 	const containerRef = useRef(null);
+	const hover = useRef(null);
 
 	const [minDate, maxDate] = d3.extent(expenses, (d) =>
 		d3.timeDay.floor(d.date)
@@ -63,7 +64,21 @@ function Expenses({
 		if (!loaded) {
 			xScale.range([margin.left, width - margin.right]);
 
-			container.current = d3.select(containerRef.current);
+			container.current = d3.select(containerRef.current).append('g');
+			hover.current = d3.select(containerRef.current).append('g');
+			hover.current
+				.append('rect')
+				.attr('height', fontSize + 4)
+				.attr('y', -fontSize / 2 - 2)
+				.attr('opacity', 0.85)
+				.attr('fill', colors.white);
+			hover.current
+				.append('text')
+				.attr('text-anchor', 'middle')
+				.attr('dy', '.35em')
+				.attr('fill', colors.black)
+				.style('font-size', fontSize)
+				.style('pointer-events', 'none');
 
 			calculateData();
 			renderCircles();
@@ -129,13 +144,13 @@ function Expenses({
 		// with all days with its position and date properties without duplicate
 		days = _.chain(calculatedSelectedWeek)
 			.map((date) =>
-				Object.assign(calculateDayPosition(date, true), date)
+				Object.assign(calculateDayPosition(date, true), { date })
 			)
 			.union(
 				d3.timeDay
 					.range(minDate, maxDate)
 					.map((date) =>
-						Object.assign(calculateDayPosition(date), date)
+						Object.assign(calculateDayPosition(date), { date })
 					)
 			)
 			.value();
@@ -177,6 +192,8 @@ function Expenses({
 			.attr('fill', colors.white)
 			.style('cursor', 'move')
 			.call(drag)
+			.on('mouseover', mouseOver)
+			.on('mouseleave', () => hover.current.style('display', 'none'))
 			.merge(circles)
 			.attr('r', (d) => d.radius)
 			.attr('stroke', (d) => (d.categories ? colors.black : ''));
@@ -252,6 +269,33 @@ function Expenses({
 
 		dragged = null;
 		dragging = false;
+	};
+
+	/**
+	 * Hover event function
+	 */
+	const mouseOver = (e, d) => {
+		if (dragging) return;
+		hover.current.style('display', 'block');
+
+		const { x, y, name, amount } = d;
+		hover.current.attr(
+			'transform',
+			'translate(' + [x, y + d.radius + fontSize] + ')'
+		);
+
+		const amountFormat = d3.format(',.2f');
+		hover.current.select('text').text(`${name} $${amountFormat(amount)}`);
+
+		const width = hover.current
+			.select('text')
+			.node()
+			.getBoundingClientRect().width;
+
+		hover.current
+			.select('rect')
+			.attr('width', width + 6)
+			.attr('x', -width / 2 - 3);
 	};
 
 	return <g ref={containerRef}></g>;

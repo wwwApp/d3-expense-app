@@ -26,7 +26,6 @@ const simulation = d3
 		d3.forceY((d) => d.focusY)
 	)
 	.stop();
-const drag = d3.drag();
 
 function Categories({ width, categories, expenses, selectedWeek, colors }) {
 	const [loaded, setLoaded] = useState(false);
