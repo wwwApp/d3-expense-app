@@ -7,7 +7,6 @@ import expensesData from './data/expenses.json';
 import Expenses from './viz/Expenses';
 import Categories from './viz/Categories';
 import Day from './viz/Day';
-import { useForceUpdate } from './utils';
 
 const width = 750;
 const height = 1800;
@@ -18,7 +17,6 @@ const colors = {
 };
 
 function App() {
-	const forceUpdate = useForceUpdate();
 	const [expenses, setExpenses] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
@@ -138,6 +136,7 @@ function App() {
 			};
 
 			setCategories([...categories, newCategory]);
+			e.target.value = '';
 		}
 	};
 
