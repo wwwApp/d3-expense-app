@@ -180,7 +180,7 @@ function Day({ width, colors, expenses, selectedWeek }) {
 			.text((d) => timeFormat(d.date));
 	};
 
-	return <g ref={containerRef} />;
+	return <g ref={containerRef} id="days" />;
 }
 
 export default Day;

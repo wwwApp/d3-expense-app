@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import chroma from 'chroma-js';
 import _ from 'lodash';
+import deleteIconSvg from '../imgs/trash-icon.svg';
 
 const height = 600;
 const topPadding = 125;
@@ -9,6 +10,7 @@ const radius = 55;
 const deleteIconProp = {
 	y: 165,
 	radius: 30,
+	bg: '#ffd2c7',
 };
 
 const amountScale = d3.scaleLog();
@@ -54,15 +56,9 @@ function Categories({
 
 		if (!loaded) {
 			container.current = d3.select(containerRef.current);
-			deleteIconProp.x = width / 2;
-			deleteIcon.current = container.current
-				.append('circle')
-				.attr('cx', deleteIconProp.x)
-				.attr('cy', deleteIconProp.y)
-				.attr('r', deleteIconProp.radius)
-				.style('display', 'none');
 
 			calculateData();
+			renderDeleteIcon();
 			renderLinks();
 			renderCircles();
 
@@ -161,6 +157,28 @@ function Categories({
 		});
 	};
 
+	const renderDeleteIcon = () => {
+		deleteIconProp.x = width / 2;
+		deleteIcon.current = container.current
+			.append('g')
+			.attr(
+				'transform',
+				(d) => `translate(${[deleteIconProp.x, deleteIconProp.y]})`
+			);
+		deleteIcon.current
+			.append('circle')
+			.attr('r', deleteIconProp.radius)
+			.attr('fill', deleteIconProp.bg);
+		deleteIcon.current
+			.append('image')
+			.attr('width', deleteIconProp.radius)
+			.attr('height', deleteIconProp.radius)
+			.attr('href', deleteIconSvg)
+			.attr('x', -deleteIconProp.radius / 2)
+			.attr('y', -deleteIconProp.radius / 2);
+		deleteIcon.current.style('display', 'none');
+	};
+
 	const renderLinks = () => {
 		lines = container.current.selectAll('path').data(links);
 
@@ -181,7 +199,7 @@ function Categories({
 		const t = d3.transition().duration(500);
 
 		// update
-		circles = container.current.selectAll('g').data(categories);
+		circles = container.current.selectAll('.category').data(categories);
 
 		// exit
 		circles.exit().remove();
@@ -269,7 +287,7 @@ function Categories({
 		dragged = null;
 	};
 
-	return <g ref={containerRef}></g>;
+	return <g ref={containerRef} id="categories"></g>;
 }
 
 export default Categories;

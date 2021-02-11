@@ -302,7 +302,7 @@ function Expenses({
 			.attr('x', -width / 2 - 3);
 	};
 
-	return <g ref={containerRef}></g>;
+	return <g ref={containerRef} id="expenses"></g>;
 }
 
 export default Expenses;
