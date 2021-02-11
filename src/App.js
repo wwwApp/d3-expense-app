@@ -22,6 +22,8 @@ function App() {
 	const [expenses, setExpenses] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
+	const [prevDisabled, setPrevDisabled] = useState(false);
+	const [nextDisabled, setNextDisabled] = useState(true);
 
 	useEffect(() => {
 		// componentwillmount
@@ -56,14 +58,36 @@ function App() {
 	}, []);
 
 	const prevWeek = () => {
-		// todo: out of range error handling
+		if (prevDisabled) return;
+
+		setNextDisabled(false);
+		const minWeek = d3
+			.extent(expenses, (d) => d3.timeWeek.floor(d.date))[0]
+			.getTime();
 		const newWeek = d3.timeWeek.offset(selectedWeek, -1);
+
+		if (newWeek.getTime() === minWeek) {
+			// if new week is the min week
+			// you don't want the btn to be enabled for next event
+			setPrevDisabled(true);
+		}
 		setSelectedWeek(newWeek);
 	};
 
 	const nextWeek = () => {
-		// todo: out of range error handling
+		setPrevDisabled(false);
+		setNextDisabled(false);
+
+		const maxWeek = d3
+			.extent(expenses, (d) => d3.timeWeek.floor(d.date))[1]
+			.getTime();
 		const newWeek = d3.timeWeek.offset(selectedWeek, 1);
+
+		if (newWeek.getTime() === maxWeek) {
+			// if new week is the max week
+			// you don't want the btn to be enabled for next event
+			setNextDisabled(true);
+		}
 		setSelectedWeek(newWeek);
 	};
 
@@ -152,13 +176,13 @@ function App() {
 					<FontAwesomeIcon
 						icon={faArrowLeft}
 						onClick={prevWeek}
-						className="btn"
+						className={`btn ${prevDisabled && 'disabled'}`}
 					/>
 					<h1>Week of {timeFormat(selectedWeek)}</h1>
 					<FontAwesomeIcon
 						icon={faArrowRight}
 						onClick={nextWeek}
-						className="btn"
+						className={`btn ${nextDisabled && 'disabled'}`}
 					/>
 				</div>
 				<div className="flex">
