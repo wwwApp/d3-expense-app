@@ -75,9 +75,9 @@ function App() {
 	};
 
 	const nextWeek = () => {
-		setPrevDisabled(false);
-		setNextDisabled(false);
+		if (nextDisabled) return;
 
+		setPrevDisabled(false);
 		const maxWeek = d3
 			.extent(expenses, (d) => d3.timeWeek.floor(d.date))[1]
 			.getTime();
@@ -92,25 +92,39 @@ function App() {
 	};
 
 	const linkToCategory = ({ expense, category }) => {
-		// todo: avoid direct update on react state
-		const index = category.expenses
+		// get indices for updating categories
+		const cIndex = categories
+			.map((category) => category.name)
+			.indexOf(category.name);
+		const ceIndex = category.expenses
 			.map((expense) => expense.id)
 			.indexOf(expense.id);
-		if (index !== -1) {
+
+		// get index for updating expense
+		const eIndex = expenses
+			.map((expense) => expense.id)
+			.indexOf(expense.id);
+
+		const updatedCategories = [...categories];
+		const updatedExpenses = [...expenses];
+		if (ceIndex !== -1) {
 			// if expense is already linked, then unlink
-			category.expenses.splice(index, 1);
-			expense.categories -= 1;
+			updatedCategories[cIndex].expenses.splice(ceIndex, 1);
+			updatedExpenses[eIndex].categories -= 1;
 		} else {
-			category.expenses.push(expense);
-			expense.categories += 1;
+			updatedCategories[cIndex].expenses.push(expense);
+			updatedExpenses[eIndex].categories += 1;
 		}
-		forceUpdate();
+
+		setCategories(updatedCategories);
+		setExpenses(updatedExpenses);
 	};
 
 	const changeDate = ({ expense, day }) => {
-		// todo: avoid direct update on react state
-		expense.date = day.date;
-		forceUpdate();
+		const index = expenses.map((expense) => expense.id).indexOf(expense.id);
+		const updated = [...expenses];
+		updated[index].date = day.date;
+		setExpenses(updated);
 	};
 
 	const addCategory = (e) => {
