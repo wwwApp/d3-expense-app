@@ -6,6 +6,10 @@ import _ from 'lodash';
 const height = 600;
 const topPadding = 125;
 const radius = 55;
+const deleteIconProp = {
+	y: 165,
+	radius: 30,
+};
 
 const amountScale = d3.scaleLog();
 const colorScale = chroma.scale(['#53c3ac', '#f7e883', '#e85178']);
@@ -26,8 +30,16 @@ const simulation = d3
 		d3.forceY((d) => d.focusY)
 	)
 	.stop();
+const drag = d3.drag();
 
-function Categories({ width, categories, expenses, selectedWeek, colors }) {
+function Categories({
+	width,
+	categories,
+	expenses,
+	selectedWeek,
+	colors,
+	deleteCategory,
+}) {
 	const [loaded, setLoaded] = useState(false);
 	let calculatedCategories = null;
 	let circles = null;
@@ -35,17 +47,31 @@ function Categories({ width, categories, expenses, selectedWeek, colors }) {
 	let links = [];
 	const container = useRef(null);
 	const containerRef = useRef(null);
+	const deleteIcon = useRef(null);
 
 	useEffect(() => {
 		simulation.on('tick', forceTick);
 
 		if (!loaded) {
 			container.current = d3.select(containerRef.current);
+			deleteIconProp.x = width / 2;
+			deleteIcon.current = container.current
+				.append('circle')
+				.attr('cx', deleteIconProp.x)
+				.attr('cy', deleteIconProp.y)
+				.attr('r', deleteIconProp.radius)
+				.style('display', 'none');
+
 			calculateData();
 			renderLinks();
 			renderCircles();
 
 			simulation.nodes(calculatedCategories).alpha(0.9).restart();
+
+			drag.container(container.current)
+				.on('start', dragStarted)
+				.on('drag', dragExpense)
+				.on('end', dragEnd);
 			setLoaded(true);
 		} else {
 			calculateData();
@@ -162,7 +188,12 @@ function Categories({ width, categories, expenses, selectedWeek, colors }) {
 
 		// enter
 		let enter = circles.enter().append('g').classed('category', true);
-		enter.append('circle').attr('r', radius).attr('stroke-width', 1);
+		enter
+			.append('circle')
+			.attr('r', radius)
+			.attr('stroke-width', 1)
+			.style('cursor', 'move')
+			.call(drag);
 		enter
 			.append('text')
 			.attr('text-anchor', 'middle')
@@ -182,6 +213,60 @@ function Categories({ width, categories, expenses, selectedWeek, colors }) {
 			.text((d) => d.name)
 			.transition(t)
 			.attr('fill', (d) => (d.total ? colors.white : colors.black));
+	};
+
+	/**
+	 * Drag event functions
+	 */
+	let dragged = null;
+
+	const dragStarted = (e) => {
+		// not quite sure why these are necessary
+		// drag stills works without these lines
+		// https://observablehq.com/@d3/force-directed-lattice?collection=@d3/d3-drag
+		simulation.alphaTarget(0.3).restart();
+		e.subject.fx = e.subject.x;
+		e.subject.fy = e.subject.y;
+
+		deleteIcon.current.style('display', 'block');
+	};
+
+	const dragExpense = (e) => {
+		dragged = null;
+
+		e.subject.fx = e.x;
+		e.subject.fy = e.y;
+
+		const category = e.subject;
+		const categoryX = e.x;
+		const categoryY = e.y;
+		const { x, y, radius } = deleteIconProp;
+
+		// if dragged over the delete icon
+		if (
+			x - radius < categoryX &&
+			categoryX < x + radius &&
+			y - radius < categoryY &&
+			categoryY < y + radius
+		) {
+			dragged = category;
+		}
+	};
+
+	const dragEnd = (e) => {
+		if (!e.active) {
+			simulation.alphaTarget(0);
+		}
+		e.subject.fx = null;
+		e.subject.fy = null;
+
+		deleteIcon.current.style('display', 'none');
+
+		if (dragged) {
+			deleteCategory(dragged);
+		}
+
+		dragged = null;
 	};
 
 	return <g ref={containerRef}></g>;

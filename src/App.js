@@ -20,15 +20,14 @@ const colors = {
 function App() {
 	const forceUpdate = useForceUpdate();
 	const [expenses, setExpenses] = useState([]);
-	const [categories, setCategories] = useState([
-		{ name: 'Restaurants', expenses: [], total: 0 },
-		{ name: 'Travel', expenses: [], total: 0 },
-		{ name: 'Dessert', expenses: [], total: 0 },
-	]);
+	const [categories, setCategories] = useState([]);
 	const [selectedWeek, setSelectedWeek] = useState(null);
 
 	useEffect(() => {
 		// componentwillmount
+		// set initial states
+
+		// expenses
 		const processedExpenses = expensesData.map((d, i) => {
 			return {
 				id: i,
@@ -38,13 +37,21 @@ function App() {
 				categories: 0,
 			};
 		});
+		setExpenses(processedExpenses);
 
+		// categories
+		const initCategories = [
+			{ name: 'Restaurants', expenses: [], total: 0 },
+			{ name: 'Travel', expenses: [], total: 0 },
+			{ name: 'Dessert', expenses: [], total: 0 },
+		];
+		setCategories(initCategories);
+
+		// selected week
 		// default selected week will be the most recent week
 		const defaultSelectedWeek = d3.max(processedExpenses, (exp) =>
 			d3.timeWeek.floor(exp.date)
 		);
-
-		setExpenses(processedExpenses);
 		setSelectedWeek(defaultSelectedWeek);
 	}, []);
 
@@ -61,6 +68,7 @@ function App() {
 	};
 
 	const linkToCategory = ({ expense, category }) => {
+		// todo: avoid direct update on react state
 		const index = category.expenses
 			.map((expense) => expense.id)
 			.indexOf(expense.id);
@@ -76,6 +84,7 @@ function App() {
 	};
 
 	const changeDate = ({ expense, day }) => {
+		// todo: avoid direct update on react state
 		expense.date = day.date;
 		forceUpdate();
 	};
@@ -92,6 +101,13 @@ function App() {
 
 			setCategories([...categories, newCategory]);
 		}
+	};
+
+	const deleteCategory = (category) => {
+		const updatedCategories = categories.filter(
+			(d) => d.name !== category.name
+		);
+		setCategories(updatedCategories);
 	};
 
 	const timeFormat = d3.timeFormat('%B %d, %Y');
@@ -126,6 +142,7 @@ function App() {
 		selectedWeek,
 		linkToCategory,
 		changeDate,
+		deleteCategory,
 	};
 
 	return (

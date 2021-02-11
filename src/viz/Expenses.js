@@ -221,9 +221,9 @@ function Expenses({
 		e.subject.fx = e.x;
 		e.subject.fy = e.y;
 
-		let expense = e.subject;
-		let expenseX = e.x;
-		let expenseY = e.y;
+		const expense = e.subject;
+		const expenseX = e.x;
+		const expenseY = e.y;
 
 		// check for overlapped categories
 		categories.forEach((category) => {
