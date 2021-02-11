@@ -6,9 +6,8 @@ Check it out on live: https://wwwapp.github.io/d3-expense-app/
 
 ## To Do:
 
--   Take care of error handlings
 -   Make the current layout works with dynamic numbers of days/expenses
--   Add a feature to add a new expense
+-   Add a feature to add/delete a new expense
 
 # Getting Started with Create React App
 
