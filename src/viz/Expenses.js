@@ -269,6 +269,10 @@ function Expenses({
 
 		dragged = null;
 		dragging = false;
+
+		// to avoid hover el stays visible after drag
+		// even if your cursor is not on
+		hover.current.style('display', 'none');
 	};
 
 	/**
