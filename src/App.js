@@ -141,10 +141,15 @@ function App() {
 	};
 
 	const deleteCategory = (category) => {
-		const updatedCategories = categories.filter(
-			(d) => d.name !== category.name
-		);
-		setCategories(updatedCategories);
+		// const updatedCategories = categories.filter(
+		// 	(d) => d.name !== category.name
+		// );
+		// setCategories(updatedCategories);
+
+		// have no idea why, but the above gave me error
+		// that everytime i run this function, state is back to original
+		// but this one works as expected
+		setCategories((arr) => arr.filter((d) => d.name !== category.name));
 	};
 
 	const timeFormat = d3.timeFormat('%B %d, %Y');
