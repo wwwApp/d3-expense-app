@@ -126,6 +126,8 @@ function App() {
 	};
 
 	const addCategory = (e) => {
+		// todo: add validation
+		// no dupilicate category?
 		const ENTER_CODE = 13;
 
 		if (e.keyCode === ENTER_CODE) {
@@ -145,6 +147,16 @@ function App() {
 		// 	(d) => d.name !== category.name
 		// );
 		// setCategories(updatedCategories);
+
+		// make sure to take care of linked expenses as well
+		const updatedExpenses = [...expenses];
+		const indexArr = expenses.map((expense) => expense.id);
+		category.expenses.forEach((expense) => {
+			const index = indexArr.indexOf(expense.id);
+			updatedExpenses[index].categories -= 1;
+		});
+
+		setExpenses(updatedExpenses);
 
 		// have no idea why, but the above gave me error
 		// that everytime i run this function, state is back to original
