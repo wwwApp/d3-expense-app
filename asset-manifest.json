@@ -1,20 +1,21 @@
 {
   "files": {
-    "main.css": "/d3-expense-app/static/css/main.946eaf36.chunk.css",
-    "main.js": "/d3-expense-app/static/js/main.5a81b9fa.chunk.js",
-    "main.js.map": "/d3-expense-app/static/js/main.5a81b9fa.chunk.js.map",
+    "main.css": "/d3-expense-app/static/css/main.da524b23.chunk.css",
+    "main.js": "/d3-expense-app/static/js/main.576fce75.chunk.js",
+    "main.js.map": "/d3-expense-app/static/js/main.576fce75.chunk.js.map",
     "runtime-main.js": "/d3-expense-app/static/js/runtime-main.2525559e.js",
     "runtime-main.js.map": "/d3-expense-app/static/js/runtime-main.2525559e.js.map",
-    "static/js/2.727040c0.chunk.js": "/d3-expense-app/static/js/2.727040c0.chunk.js",
-    "static/js/2.727040c0.chunk.js.map": "/d3-expense-app/static/js/2.727040c0.chunk.js.map",
+    "static/js/2.e5ce1ab5.chunk.js": "/d3-expense-app/static/js/2.e5ce1ab5.chunk.js",
+    "static/js/2.e5ce1ab5.chunk.js.map": "/d3-expense-app/static/js/2.e5ce1ab5.chunk.js.map",
     "index.html": "/d3-expense-app/index.html",
-    "static/css/main.946eaf36.chunk.css.map": "/d3-expense-app/static/css/main.946eaf36.chunk.css.map",
-    "static/js/2.727040c0.chunk.js.LICENSE.txt": "/d3-expense-app/static/js/2.727040c0.chunk.js.LICENSE.txt"
+    "static/css/main.da524b23.chunk.css.map": "/d3-expense-app/static/css/main.da524b23.chunk.css.map",
+    "static/js/2.e5ce1ab5.chunk.js.LICENSE.txt": "/d3-expense-app/static/js/2.e5ce1ab5.chunk.js.LICENSE.txt",
+    "static/media/trash-icon.c8b03437.svg": "/d3-expense-app/static/media/trash-icon.c8b03437.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.2525559e.js",
-    "static/js/2.727040c0.chunk.js",
-    "static/css/main.946eaf36.chunk.css",
-    "static/js/main.5a81b9fa.chunk.js"
+    "static/js/2.e5ce1ab5.chunk.js",
+    "static/css/main.da524b23.chunk.css",
+    "static/js/main.576fce75.chunk.js"
   ]
 }
