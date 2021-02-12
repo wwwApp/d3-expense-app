@@ -8,7 +8,7 @@ const height = 600;
 const topPadding = 125;
 const categoryRadius = 55;
 const deleteIconProp = {
-	y: 165,
+	y: 170,
 	radius: 30,
 	bg: '#ffd2c7',
 };
@@ -216,7 +216,7 @@ function Categories({
 			.append('text')
 			.attr('text-anchor', 'middle')
 			.attr('dy', '.35em')
-			.attr('font-size', 14)
+			.attr('font-size', 16)
 			.style('pointer-events', 'none');
 
 		// enter + update selection

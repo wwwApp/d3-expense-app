@@ -167,9 +167,14 @@ function App() {
 	const timeFormat = d3.timeFormat('%B %d, %Y');
 	const isDataReady = expenses.length > 0 ? true : false;
 
-	const appStyle = { width: width, margin: 'auto', position: 'relative' };
+	const appStyle = {
+		width: width,
+		margin: 'auto',
+		position: 'relative',
+		paddingTop: 25,
+	};
 	const inputStyle = {
-		fontSize: 14,
+		fontSize: 16,
 		textAlign: 'center',
 		display: 'block',
 		padding: 5,
