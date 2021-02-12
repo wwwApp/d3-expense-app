@@ -6,7 +6,7 @@ import deleteIconSvg from '../imgs/trash-icon.svg';
 
 const height = 600;
 const topPadding = 125;
-const radius = 55;
+const categoryRadius = 55;
 const deleteIconProp = {
 	y: 165,
 	radius: 30,
@@ -19,10 +19,7 @@ const simulation = d3
 	.forceSimulation()
 	.alphaDecay(0.001)
 	.velocityDecay(0.3)
-	.force(
-		'collide',
-		d3.forceCollide((d) => d.radius + 10)
-	)
+	.force('collide', d3.forceCollide(categoryRadius + 10))
 	.force(
 		'x',
 		d3.forceX((d) => d.focusX)
@@ -148,7 +145,6 @@ function Categories({
 			return Object.assign(category, {
 				total,
 				fill: colorScale(amountScale(total)),
-				radius,
 				focusX: width / 2,
 				focusY: height / 3 + topPadding,
 				x: category.x || _.random(0.25 * width, 0.75 * width),
@@ -205,10 +201,14 @@ function Categories({
 		circles.exit().remove();
 
 		// enter
-		let enter = circles.enter().append('g').classed('category', true);
+		let enter = circles
+			.enter()
+			.append('g')
+			.classed('category', true)
+			.attr('id', (d) => d.name);
 		enter
 			.append('circle')
-			.attr('r', radius)
+			.attr('r', categoryRadius)
 			.attr('stroke-width', 1)
 			.style('cursor', 'move')
 			.call(drag);
@@ -249,7 +249,7 @@ function Categories({
 		deleteIcon.current.style('display', 'block');
 	};
 
-	const dragExpense = (e) => {
+	const dragExpense = (e, d) => {
 		dragged = null;
 
 		e.subject.fx = e.x;
@@ -260,6 +260,7 @@ function Categories({
 		const categoryY = e.y;
 		const { x, y, radius } = deleteIconProp;
 
+		const node = d3.select(`#${d.name}`).select('circle');
 		// if dragged over the delete icon
 		if (
 			x - radius < categoryX &&
@@ -268,6 +269,15 @@ function Categories({
 			categoryY < y + radius
 		) {
 			dragged = category;
+			node.transition(d3.transition().duration(100)).attr(
+				'r',
+				radius - 10
+			);
+		} else {
+			node.transition(d3.transition().duration(100)).attr(
+				'r',
+				categoryRadius
+			);
 		}
 	};
 
