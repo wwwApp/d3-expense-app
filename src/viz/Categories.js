@@ -145,6 +145,7 @@ function Categories({
 			return Object.assign(category, {
 				total,
 				fill: colorScale(amountScale(total)),
+				radius: categoryRadius,
 				focusX: width / 2,
 				focusY: height / 3 + topPadding,
 				x: category.x || _.random(0.25 * width, 0.75 * width),
@@ -201,11 +202,7 @@ function Categories({
 		circles.exit().remove();
 
 		// enter
-		let enter = circles
-			.enter()
-			.append('g')
-			.classed('category', true)
-			.attr('id', (d) => d.name);
+		let enter = circles.enter().append('g').classed('category', true);
 		enter
 			.append('circle')
 			.attr('r', categoryRadius)
@@ -249,7 +246,7 @@ function Categories({
 		deleteIcon.current.style('display', 'block');
 	};
 
-	const dragExpense = (e, d) => {
+	const dragExpense = function (e) {
 		dragged = null;
 
 		e.subject.fx = e.x;
@@ -260,7 +257,7 @@ function Categories({
 		const categoryY = e.y;
 		const { x, y, radius } = deleteIconProp;
 
-		const node = d3.select(`#${d.name}`).select('circle');
+		const node = d3.select(this);
 		// if dragged over the delete icon
 		if (
 			x - radius < categoryX &&
