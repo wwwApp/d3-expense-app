@@ -8,6 +8,7 @@ Check it out on live: https://wwwapp.github.io/d3-expense-app/
 
 -   Make the current layout works with dynamic numbers of days/expenses
 -   Add a feature to add/delete a new expense
+-   Fix the error with category animation when deleting
 
 # Getting Started with Create React App
 
